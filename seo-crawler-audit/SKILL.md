@@ -68,7 +68,8 @@ A table: Check | Status (PASS/WARN/FAIL) | Evidence (the actual missing string, 
    ```
    curl "https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=<TARGET_URL>&strategy=mobile&category=performance&category=seo&category=accessibility"
    ```
-   - No OAuth needed. Works without an API key for occasional/manual use (Google may rate-limit anonymous calls); a free key from Google Cloud Console (`&key=...`) removes that limit for repeated use.
+   - No OAuth needed, but in practice the keyless quota is effectively **zero** (confirmed live: a bare call without `&key=...` returned HTTP 429 `RESOURCE_EXHAUSTED` with `quota_limit_value: "0"`, not an occasional soft rate-limit). Treat a free [Google Cloud API key](https://developers.google.com/speed/docs/insights/v5/get-started) as required, not optional, before relying on this check - request one before the audit if none is configured, rather than assuming a keyless call will work.
+   - If no key is available and a keyless call 429s, say so plainly and fall back to the manual proxy checks below (image `alt` coverage, viewport, render-blocking patterns) rather than silently skipping the Core Web Vitals section.
    - Returns real `lighthouseResult` data: LCP, CLS, INP/TBT, and Google's own `performance`/`seo`/`accessibility` category scores - genuine numbers, not estimates. Run both `strategy=mobile` and `strategy=desktop` since they score independently and mobile is what Google primarily indexes from (mobile-first indexing).
    - Still check meaningful image `alt` text and no obvious render-blocking patterns in `<head>` as quick manual sanity checks, but don't present those as a substitute for the real PSI numbers once this call is available.
 

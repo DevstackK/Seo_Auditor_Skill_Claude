@@ -34,7 +34,7 @@ This mode is upfront about what it can't do: **no local tool can see Google's li
 - **Query-to-content match** — does the page's crawlable text (not the full rendered DOM) directly and specifically answer a target query, near the top of the page?
 - **Competitive topical coverage** — pulls current top organic results for a target query via web search and compares topic/entity coverage, as a gap list
 - **E-E-A-T-adjacent signals** — author/org identity, dates, citations, supporting structured data
-- **Real Core Web Vitals** — calls the actual [Google PageSpeed Insights API](https://developers.google.com/speed/docs/insights/v5/get-started) (no OAuth, works keyless for occasional use) for genuine LCP/CLS/INP and Lighthouse performance/SEO/accessibility scores — not a proxy heuristic
+- **Real Core Web Vitals** — calls the actual [Google PageSpeed Insights API](https://developers.google.com/speed/docs/insights/v5/get-started) for genuine LCP/CLS/INP and Lighthouse performance/SEO/accessibility scores — not a proxy heuristic. No OAuth needed, but the keyless quota is effectively zero in practice (confirmed: a bare call 429s with `quota_limit_value: "0"`) — a free API key is required, not optional
 - **AEO-specific structure** — does the page use genuine Q&A structure, short quotable lead sentences, comparison tables — the shapes LLM-based answer engines tend to extract cleanly
 
 **Output:** qualitative findings with a confidence level (high/medium/low) per area, always closing with an explicit reminder that this is a signal estimate, not a ranking prediction.
@@ -111,7 +111,7 @@ Claude will then:
 - Claude Code with `curl`/Bash access
 - A Playwright or Chrome MCP tool connected, for Mode 1's JS-rendered DOM capture (used to diff against the raw fetch)
 - `WebSearch` tool access, for Mode 2's competitive topical coverage check
-- No API keys required to run either mode. An optional free [Google Cloud PageSpeed Insights API key](https://developers.google.com/speed/docs/insights/v5/get-started) removes rate limits on the Core Web Vitals check in Mode 2 if you run it often.
+- No API keys required for Mode 1. Mode 2's real Core Web Vitals check needs a free [Google Cloud PageSpeed Insights API key](https://developers.google.com/speed/docs/insights/v5/get-started) — the keyless quota is effectively zero in practice, not just occasionally rate-limited.
 
 ## Credits
 
