@@ -13,6 +13,8 @@ Then proceed with the audit below.
 
 Built from a real incident: ChatGPT summarized a product's pricing completely wrong because its marketing homepage only exposed one incomplete JSON-LD snippet to a non-JS fetch - the actual pricing/features were client-rendered and invisible to anything that doesn't execute JavaScript. This skill formalizes that diagnostic into a repeatable check, plus a separate, explicitly-bounded AEO signal estimate.
 
+Grounded in Google's own [AI-optimization guide for Search](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide), which confirms the core premise directly: pages must be "publicly accessible, crawlable," JavaScript SEO best practices matter, and "If your JavaScript content isn't accessible to our crawler, it may negatively affect how your content performs" in both traditional Search and AI features. Where this skill's checks go beyond or diverge from what Google states explicitly, that's called out inline rather than left implied.
+
 ## Mode 1: Crawlability & Structured-Data Audit (mechanical, reliable)
 
 This mode answers one question precisely: **what does a crawler that does NOT execute JavaScript actually receive?** Most of Google's first indexing pass, nearly all AI search/answer tools, and most SEO scrapers work this way - if content only exists after hydration, it's invisible to them, whatever appears in a real browser.
@@ -29,9 +31,10 @@ This mode answers one question precisely: **what does a crawler that does NOT ex
 
 4. **Extract and validate every JSON-LD block** (`<script type="application/ld+json">`) from the raw HTML:
    - Parse as JSON - malformed JSON silently fails for every consumer.
-   - Check it matches real, current product/site state (price, name, feature claims) - stale or wrong structured data is worse than none, since it's exactly what AI tools and rich-results parsers trust first.
-   - Check for the schema.org types that actually help AEO: `Organization`, `SoftwareApplication`/`Product` with `offers` (prefer `AggregateOffer`/`OfferCatalog` when there are multiple tiers - a single vague `Offer` is a known failure mode, see the incident above), `featureList` (a real, underused property many tools specifically parse for "what does this do"), `FAQPage`/`Article`/`BreadcrumbList` where applicable.
+   - Check it matches real, current product/site state (price, name, feature claims) - stale or wrong structured data is worse than none, since it's exactly what AI tools and rich-results parsers trust first (a dead-domain `url`/`logo` reference, or a price claim that matches nothing on the actual page, are real bugs this has caught).
+   - Check for the schema.org types that help rich results and entity understanding: `Organization`, `SoftwareApplication`/`Product` with `offers` (prefer `AggregateOffer`/`OfferCatalog` when there are multiple tiers - a single vague `Offer` is a known failure mode, see the incident above), `featureList`, `FAQPage`/`Article`/`BreadcrumbList` where applicable.
    - A missing property isn't automatically a problem - flag it only when that property would materially help a tool understand price/features/identity.
+   - **Important caveat, straight from Google's own [AI-optimization guide](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide):** *"Structured data isn't required for generative AI search, and there's no special schema.org markup you need to add."* Frame every finding here as "this helps rich results, entity clarity, and factual accuracy" - never as "AI search requires this." The checks stay the same; the justification does not overstate what Google has actually said.
 
 5. **Check meta tags** in the raw HTML: `<title>` (present, specific, roughly 10-60 chars), meta description (roughly 120-160 chars, not generic), canonical URL, `robots` meta/header, OpenGraph + Twitter Card tags, viewport meta.
 
@@ -54,7 +57,7 @@ A table: Check | Status (PASS/WARN/FAIL) | Evidence (the actual missing string, 
 
 ## Mode 2: AEO / Ranking-Signal Estimate (best-effort, explicitly bounded)
 
-**State this limitation up front, every time, before giving any assessment:** no local tool can see Google's live index, PageRank/link graph, domain authority, historical click-through data, or the actual ranking algorithm. A predicted rank position or "you'll rank #3" claim from any local tool is fabricated, not estimated - never produce one. What follows is a qualitative signal estimate only.
+**State this limitation up front, every time, before giving any assessment:** no local tool can see Google's live index, PageRank/link graph, domain authority, historical click-through data, or the actual ranking algorithm. A predicted rank position or "you'll rank #3" claim from any local tool is fabricated, not estimated - never produce one. This isn't just caution, it's Google's own stated position: their [AI-optimization guide](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide) says plainly, *"No third-party tool has access to our internal ranking or AI systems."* What follows is a qualitative signal estimate only.
 
 ### What can be reasonably assessed
 
@@ -73,11 +76,11 @@ A table: Check | Status (PASS/WARN/FAIL) | Evidence (the actual missing string, 
    - Returns real `lighthouseResult` data: LCP, CLS, INP/TBT, and Google's own `performance`/`seo`/`accessibility` category scores - genuine numbers, not estimates. Run both `strategy=mobile` and `strategy=desktop` since they score independently and mobile is what Google primarily indexes from (mobile-first indexing).
    - Still check meaningful image `alt` text and no obvious render-blocking patterns in `<head>` as quick manual sanity checks, but don't present those as a substitute for the real PSI numbers once this call is available.
 
-5. **AEO-specific structure**: does the page use genuine Q&A structure, short declarative lead sentences, tables/lists for comparable facts - the shapes that LLM-based answer engines tend to extract and quote cleanly, versus long undifferentiated marketing prose.
+5. **AEO-specific structure**: does the page use genuine Q&A structure, short declarative lead sentences, tables/lists for comparable facts - the shapes that LLM-based answer engines tend to extract and quote cleanly, versus long undifferentiated marketing prose. **Frame this as writing for real users, never as rewriting for AI.** Google's AI-optimization guide is explicit that this distinction matters: it directly warns against unnecessarily "chunking" content, against rewriting copy specifically for AI parsing, and says AI systems already handle synonyms and general meaning without needing keyword variations stuffed in. A good FAQ or a clear lead sentence is good writing that happens to also help AI extraction - recommend it on that basis, not as an "AI hack." If a site already has (or asks for) an `llms.txt` file or similar "special AI markup," say plainly that Google's own guide states Google Search doesn't use these and they neither help nor hurt rankings - don't let that effort substitute for the real fixes Mode 1 finds.
 
 ### Output format
 
-Qualitative findings grouped by the five areas above, each with a confidence level (high/medium/low) based on how directly observable the evidence is. Explicitly end with: "This is a signal estimate from crawlable content only - not a ranking prediction. For real ranking/performance data, use Google Search Console, a rank tracker, or PageSpeed Insights directly."
+Qualitative findings grouped by the five areas above, each with a confidence level (high/medium/low) based on how directly observable the evidence is. Explicitly end with: "This is a signal estimate from crawlable content only - not a ranking prediction. For real ranking/performance data, use Google Search Console (including its Generative AI performance report for AI Overviews/AI Mode visibility specifically), a rank tracker, or PageSpeed Insights directly."
 
 ## Known limitations
 
@@ -92,7 +95,7 @@ State these plainly when asked how reliable this skill is, or when a finding fro
 - No backlink or domain-authority data - no free, keyless Google API exposes this for an arbitrary site; closing it would need a paid third-party tool (Ahrefs, Moz, Semrush) with its own API key.
 - No multi-page crawl or site-structure/internal-linking analysis - every run audits exactly one URL. A full-site audit means invoking this skill once per URL (e.g. driven from a sitemap.xml it already fetches in Mode 1) and aggregating results yourself; it isn't built in.
 - No live Google ranking position for a query - intentionally impossible to get from any local tool; Google doesn't expose this via any public API. Mode 2 explicitly refuses to fabricate one.
-- No real Search Console data (actual indexed-page count, real impressions/clicks, manual actions/penalties) - the Search Console API exists and would give authoritative answers here, but requires the user's own OAuth credentials and verified site ownership, so it can't be wired into this skill generically for an arbitrary third-party URL. If the user owns the site and sets up Search Console API access themselves, that data would be strictly better than anything Mode 2 estimates - say so rather than silently continuing to guess.
+- No real Search Console data (actual indexed-page count, real impressions/clicks, manual actions/penalties) - the Search Console API exists and would give authoritative answers here, but requires the user's own OAuth credentials and verified site ownership, so it can't be wired into this skill generically for an arbitrary third-party URL. If the user owns the site, point them specifically at Search Console's **Generative AI performance report** (Google's own tool for tracking visibility in AI Overviews/AI Mode) and the standard Search performance report - that data would be strictly better than anything Mode 2 estimates - say so rather than silently continuing to guess.
 
 There is no official, standalone "Google SEO Kit" product to integrate with instead - "Site Kit by Google" is a WordPress-only plugin bundling Analytics/Search Console/PSI/Tag Manager dashboards, not usable here. The individual Google APIs it wraps (PageSpeed Insights, Search Console) are the real integration points, handled above on their own merits rather than as a bundle.
 
