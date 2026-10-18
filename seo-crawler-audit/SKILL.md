@@ -99,3 +99,20 @@ There is no official, standalone "Google SEO Kit" product to integrate with inst
 ## Running both modes together
 
 Run **both modes by default** on every invocation of this skill, Mode 1 first: it's mechanical, verifiable, and usually surfaces the highest-leverage fix (as it did here: the actual pricing model wasn't in the HTML at all, which matters more than any ranking-signal nuance). Mode 2 then builds on Mode 1's raw-fetch result rather than re-fetching. Skip Mode 2 only when the user explicitly scopes the request to crawlability/structured-data alone (e.g. "just check the JSON-LD"), or when there's no clear target query/topic to assess query-to-content match against and the user doesn't supply one when asked.
+
+## Bottom Line & Remediation (always include, every run)
+
+Every audit - whether Mode 1 alone or both modes - closes with these two sections. Never stop at the findings table; the table says what's wrong, these two sections say what it means and what to do about it. Skip only if the user explicitly asked for a narrower output (e.g. "just give me the table").
+
+### Bottom Line
+
+2-4 sentences, no hedging beyond what the evidence actually supports: what's the single most consequential finding, in plain terms a non-technical stakeholder would understand (not "the OfferCatalog property is absent" but "an AI tool asked about pricing would only ever see one plan, not the real range"), and why it matters for that specific site (lost conversions, wrong AI summaries, a competitor's page winning the AI Overview instead). If everything passed cleanly, say that plainly too - a clean Bottom Line is a real, useful result, not a non-answer.
+
+### Remediation
+
+A developer-facing action list, ordered by leverage (highest-impact fix first), each item with:
+- **What to change** - the specific file/pattern/schema type, not a vague instruction ("add `AggregateOffer` with one `Offer` per GB tier, each with its real price" not "improve structured data")
+- **Why** - one line tying it back to the specific evidence found (not a generic "this helps SEO")
+- **A concrete example** where the fix is non-obvious - a minimal JSON-LD snippet, a code-shape sketch, or a reference to how a working page on the same site already does it correctly (if one does - reuse the site's own good pattern over inventing a new one)
+
+Mark each item's estimated effort (small/medium/large) based on what was actually observed about the codebase (e.g. "data likely already exists server-side since the GB/speed-tier option labels are embedded - this is a schema-shape change, not a new data source" vs. "this needs a new API call the page doesn't currently make"). Don't guess at effort beyond what the audit evidence supports - say "effort unknown, needs a dev to confirm how pricing is currently fetched" rather than inventing a false-precision estimate.
