@@ -10,6 +10,8 @@ That's exactly how most of the web actually gets read by machines: Google's firs
 
 This skill turns that diagnostic into something repeatable: fetch a page the way a crawler does, compare it to what a browser renders, validate the structured data, and tell you exactly what's missing — with the literal evidence, not a vague "some content may not be visible."
 
+It's grounded in Google's own [AI-optimization guide for Search](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide), not general AEO folklore. That guide both validates the core premise here (pages must be "publicly accessible, crawlable," JS SEO best practices matter) and corrects a common overstatement: Google states plainly that *"structured data isn't required for generative AI search, and there's no special schema.org markup you need to add."* This skill's JSON-LD checks are framed accordingly — they help rich results, entity clarity, and factual accuracy, not "AI search requires this." It also explicitly warns against `llms.txt` files and other "AEO hack" markup Google has stated it doesn't use.
+
 ## What it does
 
 ### Mode 1 — Crawlability & Structured-Data Audit (mechanical, reliable)
@@ -19,7 +21,7 @@ Answers one precise question: **what does a crawler that does NOT execute JavaSc
 - **Raw HTML fetch** — pulls the page with a realistic crawler UA, no JS execution
 - **JS-rendered DOM capture** — pulls the same page through a real browser (Playwright/Chrome MCP) after hydration
 - **Diff** — flags any visible, meaningful content (pricing, features, key claims) that only exists after JS runs, quoting the specific missing text
-- **JSON-LD validation** — parses every `<script type="application/ld+json">` block, checks it's valid JSON, checks it matches the real current product state, and checks for the schema.org types that actually help AI tools understand a page (`Organization`, `SoftwareApplication`/`Product` with `AggregateOffer`/`OfferCatalog`, `featureList`, `FAQPage`, `Article`, `BreadcrumbList`)
+- **JSON-LD validation** — parses every `<script type="application/ld+json">` block, checks it's valid JSON, checks it matches the real current product state (catches bugs like a logo/URL pointing at a dead domain, or a price claim that matches nothing on the actual page), and checks for the schema.org types that help rich results and entity understanding (`Organization`, `SoftwareApplication`/`Product` with `AggregateOffer`/`OfferCatalog`, `featureList`, `FAQPage`, `Article`, `BreadcrumbList`)
 - **Meta tag audit** — `<title>` length/specificity, meta description, canonical URL, robots meta, OpenGraph, Twitter Card, viewport
 - **Heading structure** — exactly one `<h1>`, logical nesting
 - **`robots.txt` audit** — reachable, correct `Allow`/`Disallow` rules for a production site (or confirms a staging site correctly blocks everything), valid `Sitemap:` directive
@@ -37,7 +39,16 @@ This mode is upfront about what it can't do: **no local tool can see Google's li
 - **Real Core Web Vitals** — calls the actual [Google PageSpeed Insights API](https://developers.google.com/speed/docs/insights/v5/get-started) for genuine LCP/CLS/INP and Lighthouse performance/SEO/accessibility scores — not a proxy heuristic. No OAuth needed, but the keyless quota is effectively zero in practice (confirmed: a bare call 429s with `quota_limit_value: "0"`) — a free API key is required, not optional
 - **AEO-specific structure** — does the page use genuine Q&A structure, short quotable lead sentences, comparison tables — the shapes LLM-based answer engines tend to extract cleanly
 
-**Output:** qualitative findings with a confidence level (high/medium/low) per area, always closing with an explicit reminder that this is a signal estimate, not a ranking prediction.
+**Output:** qualitative findings with a confidence level (high/medium/low) per area, always closing with an explicit reminder that this is a signal estimate, not a ranking prediction — a position backed by Google's own guide, which states *"No third-party tool has access to our internal ranking or AI systems."*
+
+### Bottom Line & Remediation (every run)
+
+Every audit closes with two things, not just a findings table:
+
+- **Bottom Line** — 2-4 plain-language sentences on the single most consequential finding and why it matters for that specific site, understandable by a non-technical stakeholder.
+- **Remediation** — a developer-facing, leverage-ordered action list: what to change, why (tied to the specific evidence), a concrete code/schema example where non-obvious, and an honest effort estimate (never a guessed one beyond what the audit evidence supports).
+
+Both are also published as a shareable Claude Doc (exportable to .docx/PDF), titled after the audited site, so the output is handoff-ready by default — not something you need to ask for separately.
 
 ### Known limitations (stated honestly, on purpose)
 
@@ -105,6 +116,7 @@ Claude will then:
 4. Report Mode 1 findings as a PASS/WARN/FAIL table with literal evidence
 5. Run Mode 2's AEO signal estimate (query-match, competitive coverage, real Core Web Vitals via PageSpeed Insights, AEO structure) unless you scope the request narrower
 6. State Mode 2's limitations explicitly rather than implying more confidence than the data supports
+7. Close with a Bottom Line and a prioritized developer Remediation list, and publish both as a shareable doc
 
 ## Requirements
 
