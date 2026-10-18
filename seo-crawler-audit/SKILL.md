@@ -116,3 +116,12 @@ A developer-facing action list, ordered by leverage (highest-impact fix first), 
 - **A concrete example** where the fix is non-obvious - a minimal JSON-LD snippet, a code-shape sketch, or a reference to how a working page on the same site already does it correctly (if one does - reuse the site's own good pattern over inventing a new one)
 
 Mark each item's estimated effort (small/medium/large) based on what was actually observed about the codebase (e.g. "data likely already exists server-side since the GB/speed-tier option labels are embedded - this is a schema-shape change, not a new data source" vs. "this needs a new API call the page doesn't currently make"). Don't guess at effort beyond what the audit evidence supports - say "effort unknown, needs a dev to confirm how pricing is currently fetched" rather than inventing a false-precision estimate.
+
+### Always publish Bottom Line + Remediation as a doc (not just chat)
+
+After writing these two sections in the chat reply as usual, also publish them as a Claude Doc (via the Docs connector/Artifact tool - whichever this environment provides; it's exportable to .docx/PDF from there) so the audited party has a shareable, handoff-ready file, not just chat scrollback. This is the default for every run, not something to wait for a request on.
+
+- Title the doc after the audited site (e.g. "<Site Name> SEO/AEO Remediation").
+- Include, at minimum: the Bottom Line, the Mode 1 findings table, the Mode 2 summary, and the full Remediation list - the same content as the chat reply, not a trimmed version.
+- After publishing, give the user the doc's link in the chat reply - don't make them ask for it.
+- If no docs/artifact capability is available in the environment, say so explicitly and fall back to a well-formatted chat reply rather than silently skipping the doc.
