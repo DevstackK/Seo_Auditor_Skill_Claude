@@ -113,6 +113,10 @@ Claude will then:
 - `WebSearch` tool access, for Mode 2's competitive topical coverage check
 - No API keys required for Mode 1. Mode 2's real Core Web Vitals check needs a free [Google Cloud PageSpeed Insights API key](https://developers.google.com/speed/docs/insights/v5/get-started) — the keyless quota is effectively zero in practice, not just occasionally rate-limited.
 
+## Security
+
+Scanned with [Trivy](https://trivy.dev/) — 0 secrets, 0 vulnerabilities (no scannable code/dependencies exist in this Markdown-only repo). Full scan command and result in [SECURITY.md](./SECURITY.md).
+
 ## Credits
 
 Built by [Urfan](https://www.youtube.com/@Thinkgeneng).
